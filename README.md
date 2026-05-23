@@ -19,7 +19,7 @@
 
 **🚀 加速下载：**
 
-脚本已自动使用 `hfd` 多线程下载工具（基于 aria2c，16线程并发）。如果还是很慢：
+脚本已自动使用 `hfd` 多线程下载工具（基于 aria2c，10线程 + 5并发）。如果还是很慢：
 
 ```bash
 # 方法 1: 设置代理（必须同时设置 http 和 https）
@@ -40,12 +40,12 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 **⚠️ 重要提示：**
 - 必须同时设置 `http_proxy` 和 `https_proxy`（小写）
-- hfd 工具会自动使用 16 线程并发下载，速度比官方 CLI 快 5-10 倍
+- hfd 工具会自动使用 10 线程并发下载，速度比官方 CLI 快 5-10 倍
 
 ### 2. 启动服务
 
 ```bash
-# 使用默认端口 8080（路由模式，同时加载所有模型）
+# 使用默认端口 10101（路由模式，同时加载所有模型）
 ./run.sh
 
 # 指定端口
@@ -62,7 +62,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### 3. 测试视觉能力
 
 ```bash
-# 运行视觉测试（默认端口 8080）
+# 运行视觉测试（默认端口 10101）
 ./test.sh
 
 # 指定端口
@@ -78,8 +78,8 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### 4. 使用 API
 
 服务启动后访问：
-- API 文档: http://localhost:8080/docs
-- OpenAI 兼容接口: http://localhost:8080/v1/chat/completions
+- API 文档: http://localhost:10101/docs
+- OpenAI 兼容接口: http://localhost:10101/v1/chat/completions
 
 ## 📝 示例
 
@@ -101,43 +101,43 @@ export HF_ENDPOINT=https://hf-mirror.com
 **查看可用模型：**
 
 ```bash
-curl http://localhost:8080/v1/models
+curl http://localhost:10101/v1/models
 ```
 
 **测试不同模型：**
 
-注意：路由模式下，`model` 字段需要使用相对于 `--models-dir` 的路径
+路由模式下，`model` 字段直接使用目录名（短名称），无需完整路径。
 
 ```bash
 # 使用 0.8B 模型
-curl http://localhost:8080/v1/chat/completions \
+curl http://localhost:10101/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen3.5-0.8B/Qwen3.5-0.8B-Q4_K_M.gguf",
+    "model": "Qwen3.5-0.8B",
     "messages": [{"role": "user", "content": "你好！"}]
   }'
 
 # 使用 2B 模型
-curl http://localhost:8080/v1/chat/completions \
+curl http://localhost:10101/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen3.5-2B/Qwen3.5-2B-Q4_K_M.gguf",
+    "model": "Qwen3.5-2B",
     "messages": [{"role": "user", "content": "介绍一下你自己"}]
   }'
 
 # 使用 4B 模型
-curl http://localhost:8080/v1/chat/completions \
+curl http://localhost:10101/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen3.5-4B/Qwen3.5-4B-Q4_K_M.gguf",
+    "model": "Qwen3.5-4B",
     "messages": [{"role": "user", "content": "写一首诗"}]
   }'
 
 # 使用 9B 模型
-curl http://localhost:8080/v1/chat/completions \
+curl http://localhost:10101/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen3.5-9B/Qwen3.5-9B-Q4_K_M.gguf",
+    "model": "Qwen3.5-9B",
     "messages": [{"role": "user", "content": "解释量子计算"}]
   }'
 ```
@@ -158,7 +158,7 @@ PROMPT="请用一句话介绍人工智能"
 
 for MODEL in "${MODELS[@]}"; do
     echo "\n🧪 测试 $MODEL..."
-    time curl -s http://localhost:8080/v1/chat/completions \
+    time curl -s http://localhost:10101/v1/chat/completions \
         -H "Content-Type: application/json" \
         -d "{\"model\": \"$MODEL\", \"messages\": [{\"role\": \"user\", \"content\": \"$PROMPT\"}]}" \
         | jq -r '.choices[0].message.content'
@@ -176,12 +176,12 @@ done
 
 ## 💡 提示
 
-- 首次运行 `./init.sh` 会自动安装 Homebrew、llama.cpp 和 huggingface-cli
+- 首次运行 `./init.sh` 会自动安装 Homebrew、llama.cpp 和 hfd + aria2c 下载工具
 - 模型默认下载到 `./models` 目录，每个模型包含 GGUF + mmproj 文件
 - Qwen3.5 是原生多模态模型，支持文本和图像输入
 - `run.sh` 使用路由模式，自动扫描 `./models` 目录
 - 通过 API 的 `model` 参数动态选择要使用的模型（直接用目录名，如 `Qwen3.5-0.8B`）
-- 查看可用模型列表：`curl http://localhost:8080/v1/models`
+- 查看可用模型列表：`curl http://localhost:10101/v1/models`
 - 使用 `./test.sh` 测试模型的视觉能力
 - **macOS SSL 错误**: 如果遇到 SSL 证书错误，运行 `./fix-ssl.sh` 修复
 - 按 `Ctrl+C` 停止服务

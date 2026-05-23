@@ -4,7 +4,7 @@
 set -e
 
 MODEL_DIR="./models"
-PORT="${1:-8080}"
+PORT="${1:-10101}"
 CONTEXT_SIZE=8192
 MAX_MODELS=0  # 0 = 不限制同时加载的模型数量
 
@@ -42,9 +42,9 @@ echo ""
 echo "  # 文本对话 (用目录名作为 model，无需长路径)"
 echo "  curl http://localhost:$PORT/v1/chat/completions \\"
 echo "    -H \"Content-Type: application/json\" \\"
-echo "    -d '{\"
-echo "      \"model\": \"Qwen3.5-0.8B\",\"
-echo "      \"messages\": [{\"role\": \"user\", \"content\": \"你好！\"}]\"
+echo "    -d '{"
+echo "      \"model\": \"Qwen3.5-0.8B\","
+echo "      \"messages\": [{\"role\": \"user\", \"content\": \"你好！\"}]"
 echo "    }'"
 echo ""
 echo "💡 提示: 路由模式下模型按需加载，目录名即为 model 名称"

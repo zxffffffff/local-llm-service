@@ -3,7 +3,7 @@
 
 set -e
 
-PORT="${1:-8080}"
+PORT="${1:-10101}"
 BASE_URL="http://localhost:$PORT"
 API_URL="$BASE_URL/v1/chat/completions"
 IMAGE_DIR="./resources/test_images"

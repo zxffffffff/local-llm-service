@@ -188,7 +188,7 @@ models/
 .hfd/
 
 # hfd 下载脚本 (由 init.sh 自动下载)
-hfd
+hfd.sh
 
 # macOS
 .DS_Store

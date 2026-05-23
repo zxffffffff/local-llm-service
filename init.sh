@@ -53,7 +53,7 @@ fi
 # 安装 hfd (HuggingFace Downloader)
 echo "   安装 hfd..."
 curl -sLf https://hf-mirror.com/hfd/hfd.sh > /tmp/hfd.sh && chmod +x /tmp/hfd.sh
-mv /tmp/hfd.sh ./hfd
+mv /tmp/hfd.sh ./hfd.sh
 echo "   ✅ hfd 安装完成"
 
 # 3. 下载所有模型（含视觉配置文件）
@@ -88,16 +88,25 @@ for SIZE in "${MODEL_SIZES[@]}"; do
     echo "📦 下载 Qwen3.5-${SIZE}..."
     mkdir -p "$MODEL_PATH"
     
-    # 检查文件是否已完整下载
-    if [ -f "$MODEL_PATH/Qwen3.5-${SIZE}-Q4_K_M.gguf" ] && [ -f "$MODEL_PATH/mmproj-F16.gguf" ]; then
-        echo "✅ Qwen3.5-${SIZE} 已存在，跳过下载"
+    # 检查文件是否已完整下载（无未完成的 aria2 下载残留）
+    HAS_INCOMPLETE=$(ls "$MODEL_PATH"/*.aria2 2>/dev/null | wc -l | tr -d ' ')
+    if [ -f "$MODEL_PATH/Qwen3.5-${SIZE}-Q4_K_M.gguf" ] && \
+       [ -f "$MODEL_PATH/mmproj-F16.gguf" ] && \
+       [ "$HAS_INCOMPLETE" -eq 0 ]; then
+        echo "✅ Qwen3.5-${SIZE} 已完整下载，跳过"
         continue
+    fi
+
+    # 存在未完成的下载 → 清除缓存后断点续传
+    if [ "$HAS_INCOMPLETE" -gt 0 ]; then
+        echo "⚠️  检测到未完成的下载，将断点续传..."
+        rm -rf "$MODEL_PATH/.hfd"
     fi
     
     # 使用 hfd + aria2 下载（最优参数）
     # -x 10: 每个文件最大 10 个连接线程
     # -j 5: 同时下载 5 个文件（并发任务数）
-    ./hfd "$REPO" --tool aria2c -x 10 -j 5 --local-dir "$MODEL_PATH" \
+    ./hfd.sh "$REPO" --tool aria2c -x 10 -j 5 --local-dir "$MODEL_PATH" \
         --include "Qwen3.5-${SIZE}-Q4_K_M.gguf" "mmproj-F16.gguf"
     
     # 验证文件是否存在
@@ -121,4 +130,4 @@ for SIZE in "${MODEL_SIZES[@]}"; do
 done
 echo ""
 echo "运行服务: ./run.sh"
-echo "提示: run.sh 会自动使用第一个找到的模型"
+echo "提示: run.sh 使用路由模式，自动发现所有模型"

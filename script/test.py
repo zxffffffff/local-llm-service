@@ -3,7 +3,7 @@
 test.py - 测试所有模型的视觉能力
 
 用法:
-    python3 script/test.py [--port 8080] [--model Qwen3.5-0.8B]
+    python3 script/test.py [--port 10101] [--model Qwen3.5-0.8B]
 """
 
 import sys
@@ -21,8 +21,18 @@ IMAGE_DIR = os.path.join(PROJECT_ROOT, "resources", "test_images")
 
 # 测试配置
 TEST_IMAGES = {
-    "test1.png": {"desc": "蓝色墙 + 猫", "keywords": ["猫", "cat", "蓝色", "blue", "墙", "wall"]},
-    "test2.png": {"desc": "绿色墙 + 狗", "keywords": ["狗", "dog", "绿色", "green", "墙", "wall"]},
+    "test1.png": {
+        "desc": "蓝色墙 + 猫",
+        "animals": ["猫", "cat"],
+        "colors": ["蓝色", "blue"],
+        "keywords": ["猫", "cat", "蓝色", "blue", "墙", "wall"],
+    },
+    "test2.png": {
+        "desc": "绿色墙 + 狗",
+        "animals": ["狗", "dog"],
+        "colors": ["绿色", "green"],
+        "keywords": ["狗", "dog", "绿色", "green", "墙", "wall"],
+    },
 }
 
 TEST_PROMPTS = {
@@ -157,12 +167,28 @@ def test_model(base_url, model_id, images):
 
         if status == 200:
             data = json.loads(body)
-            content = data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
+            content = message.get("content", "")
+            # 如果 content 为空，回退到 reasoning_content（推理模式）
+            if not content or not content.strip():
+                content = message.get("reasoning_content", "")
 
-            # 检查是否识别出关键元素
-            matched = [kw for kw in info["keywords"] if kw.lower() in content.lower()]
-            if matched:
-                print(f"  ✅ 通过 - 识别关键词: {matched}")
+            if not content or not content.strip():
+                print(f"  ❌ 失败 - 服务返回空内容")
+                print(f"     原始响应: {body[:300]}")
+                results.append(False)
+                continue
+
+            # 检查是否识别出动物和颜色
+            animal_matched = [kw for kw in info["animals"] if kw.lower() in content.lower()]
+            color_matched = [kw for kw in info["colors"] if kw.lower() in content.lower()]
+
+            if animal_matched and color_matched:
+                print(f"  ✅ 通过 - 动物: {animal_matched}, 颜色: {color_matched}")
+                results.append(True)
+            elif animal_matched or color_matched:
+                missing = "颜色" if not color_matched else "动物"
+                print(f"  ⚠️  部分通过 - 缺少{missing}识别")
                 results.append(True)
             else:
                 print(f"  ⚠️  部分通过 - 响应正常但未匹配关键词")
@@ -183,7 +209,7 @@ def test_model(base_url, model_id, images):
 
 def main():
     parser = argparse.ArgumentParser(description="测试 LLM 模型的视觉能力")
-    parser.add_argument("--port", type=int, default=8080, help="服务端口 (默认: 8080)")
+    parser.add_argument("--port", type=int, default=10101, help="服务端口 (默认: 10101)")
     parser.add_argument("--model", type=str, help="只测试指定模型 (如: Qwen3.5-0.8B)")
     args = parser.parse_args()
 
