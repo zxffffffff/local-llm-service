@@ -6,7 +6,7 @@ set -e
 MODEL_DIR="./models"
 PORT="${1:-10101}"
 CONTEXT_SIZE=8192
-MAX_MODELS=0  # 0 = 不限制同时加载的模型数量
+MAX_MODELS=2  # 最多同时驻留内存的模型数量
 
 echo "🚀 启动 Local LLM Service (路由模式)"
 echo "================================"
@@ -26,7 +26,8 @@ fi
 echo "📂 模型目录: $MODEL_DIR"
 echo "🌐 端口: $PORT"
 echo "📝 上下文: $CONTEXT_SIZE"
-echo "🔢 最大并发模型数: $MAX_MODELS (0=无限制)"
+echo "🔢 最大并发模型数: $MAX_MODELS"
+echo "⏱️ 空闲休眠: 30分钟"
 echo "================================"
 echo ""
 echo "📡 API 端点:"
@@ -61,6 +62,7 @@ echo ""
 exec llama-server \
     --models-dir "$MODEL_DIR" \
     --models-max "$MAX_MODELS" \
+    --sleep-idle-seconds 1800 \
     --port "$PORT" \
     --ctx-size "$CONTEXT_SIZE" \
     --host 0.0.0.0
