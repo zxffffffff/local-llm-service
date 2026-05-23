@@ -179,3 +179,22 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# ======== Project-specific ========
+# LLM 模型文件 (体积巨大)
+models/
+
+# hfd 下载工具缓存
+.hfd/
+
+# hfd 下载脚本 (由 init.sh 自动下载)
+hfd
+
+# macOS
+.DS_Store
+
+# 临时文件
+/tmp/
+/temp/
+*.tmp
+*.temp
