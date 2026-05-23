@@ -57,7 +57,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 - ✅ 按需加载：首次请求时加载模型，后续热调用
 - ✅ LRU淘汰：可配置最大并发模型数，超出时自动卸载最少使用的模型
 - ✅ 进程隔离：每个模型独立进程，单个模型崩溃不影响其他模型
-- ✅ 通过 API 的 `model` 参数动态选择模型（使用相对路径）
+- ✅ 通过 API 的 `model` 参数动态选择模型（**直接用目录名**，如 `Qwen3.5-0.8B`）
 
 ### 3. 测试视觉能力
 
@@ -149,10 +149,10 @@ curl http://localhost:8080/v1/chat/completions \
 # test-models.sh - 批量测试所有模型
 
 MODELS=(
-  "Qwen3.5-0.8B/Qwen3.5-0.8B-Q4_K_M.gguf"
-  "Qwen3.5-2B/Qwen3.5-2B-Q4_K_M.gguf"
-  "Qwen3.5-4B/Qwen3.5-4B-Q4_K_M.gguf"
-  "Qwen3.5-9B/Qwen3.5-9B-Q4_K_M.gguf"
+  "Qwen3.5-0.8B"
+  "Qwen3.5-2B"
+  "Qwen3.5-4B"
+  "Qwen3.5-9B"
 )
 PROMPT="请用一句话介绍人工智能"
 
@@ -180,8 +180,7 @@ done
 - 模型默认下载到 `./models` 目录，每个模型包含 GGUF + mmproj 文件
 - Qwen3.5 是原生多模态模型，支持文本和图像输入
 - `run.sh` 使用路由模式，自动扫描 `./models` 目录
-- 通过 API 的 `model` 参数动态选择要使用的模型（使用相对路径）
-- 可用模型路径示例：`Qwen3.5-0.8B/Qwen3.5-0.8B-Q4_K_M.gguf`
+- 通过 API 的 `model` 参数动态选择要使用的模型（直接用目录名，如 `Qwen3.5-0.8B`）
 - 查看可用模型列表：`curl http://localhost:8080/v1/models`
 - 使用 `./test.sh` 测试模型的视觉能力
 - **macOS SSL 错误**: 如果遇到 SSL 证书错误，运行 `./fix-ssl.sh` 修复
